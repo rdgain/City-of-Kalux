@@ -1,0 +1,1 @@
+This is interesting. If I stand on top of an item and press 'C' I can collect that item. If I press 'D' I can drop an item from the backpack.

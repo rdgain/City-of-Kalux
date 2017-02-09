@@ -1,0 +1,1 @@
+I can travel now! Although it appears to cost 5$. But if I press 'M' and the number of the location I want to travel to (1-5) at the same time, I'll be there in no time! (M-1 for home, M-2 for factory, M-3 for park, M-4 for Officials HQ, M-5 for wilderness).

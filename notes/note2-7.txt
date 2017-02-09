@@ -1,0 +1,1 @@
+I can use the items in my backpack, if I press the number corresponding to the position of that item in the backpack (1-9). Although it looks like I need to be in a specific location for some to work. I can always ask Daren, I'm sure he'll give me a clue.
