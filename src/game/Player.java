@@ -168,9 +168,7 @@ public class Player extends MovingObject {
                     } else if (action.steal) {
                         Random r = new Random();
                         int s = r.nextInt(9);
-                        int sum = 0;
-                        if (s >= character.stealSuccess)
-                            sum = character.stealRate / character.stealSuccess;
+                        int sum = GameRules.stealAmount(character.stealRate, character.stealSuccess, s);
                         money += sum;
                         character.money -= sum;
                     }

@@ -5,7 +5,11 @@ package utilities;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.AudioInputStream;
-import java.io.File;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 // SoundManager for Asteroids
 
@@ -55,16 +59,15 @@ public class SoundManager {
 	}
 
 	private static Clip getClip(String filename) {
-		Clip clip = null;
-		try {
-			clip = AudioSystem.getClip();
-			AudioInputStream sample = AudioSystem.getAudioInputStream(new File(path
-					+ filename + ".wav"));
+		try (InputStream resource = new BufferedInputStream(
+				ResourceManager.open("/" + path + filename + ".wav"));
+			 AudioInputStream sample = AudioSystem.getAudioInputStream(resource)) {
+			Clip clip = AudioSystem.getClip();
 			clip.open(sample);
-		} catch (Exception e) {
-			e.printStackTrace();
+			return clip;
+		} catch (IOException | UnsupportedAudioFileException | LineUnavailableException e) {
+			throw new IllegalStateException("Unable to load audio file: " + filename + ".wav", e);
 		}
-		return clip;
 	}
 
 }

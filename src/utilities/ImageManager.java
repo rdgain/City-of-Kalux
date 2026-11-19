@@ -2,7 +2,7 @@ package utilities;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.File;
+import java.io.InputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,15 +21,25 @@ public class ImageManager {
 	}
 
 	public static BufferedImage loadImage(String fname) throws IOException {
-		BufferedImage img = null;
-		img = ImageIO.read(new File(path + fname + ext));
+		BufferedImage img;
+		try (InputStream input = ResourceManager.open("/" + path + fname + ext)) {
+			img = ImageIO.read(input);
+		}
+		if (img == null) {
+			throw new IOException("Unsupported or invalid image: " + fname + ext);
+		}
 		images.put(fname, img);
 		return img; 
 	}
 
 	public static Image loadImage(String imName, String fname) throws IOException {
-		BufferedImage img = null;
-		img = ImageIO.read(new File(path + fname + ext));
+		BufferedImage img;
+		try (InputStream input = ResourceManager.open("/" + path + fname + ext)) {
+			img = ImageIO.read(input);
+		}
+		if (img == null) {
+			throw new IOException("Unsupported or invalid image: " + fname + ext);
+		}
 		images.put(imName, img);
 		return img; 
 	}

@@ -134,7 +134,7 @@ public class Constants {
             BIN = ImageManager.loadImage("objects/bin");
             ACHAIR = ImageManager.loadImage("objects/ach");
             PAINTING = ImageManager.loadImage("objects/paint");
-            PAINTINGH = ImageManager.loadImage("objects/painth");
+            PAINTINGH = ImageManager.loadImage("objects/paintH");
             FRIDGE = ImageManager.loadImage("objects/fridge");
             FRIDGEV = ImageManager.loadImage("objects/fridgeV");
             COUNTER = ImageManager.loadImage("objects/counter");
@@ -189,7 +189,9 @@ public class Constants {
 
             //event 2 stages
             EV2S2 = ImageManager.loadImage("intro/ev2s2");
-        } catch (IOException e) { System.exit(1); }
+        } catch (IOException e) {
+            throw new ExceptionInInitializerError(e);
+        }
     }
 
 

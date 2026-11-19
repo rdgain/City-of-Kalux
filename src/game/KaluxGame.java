@@ -1,11 +1,13 @@
 package game;
 
 import java.awt.*;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
+
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 import utilities.*;
 import static utilities.Constants.*;
@@ -201,12 +203,11 @@ public class KaluxGame {
                 map5L3[i][j] = null;
             }
         WorldObject o;
-        Scanner in1 = new Scanner(new FileReader("maps/map1_ob.txt"));
-        Scanner in2 = new Scanner(new FileReader("maps/map2_ob.txt"));
-        Scanner in3 = new Scanner(new FileReader("maps/map3_ob.txt"));
-        Scanner in4 = new Scanner(new FileReader("maps/map4_ob.txt"));
-        Scanner in5 = new Scanner(new FileReader("maps/map5_ob.txt"));
-        synchronized (this){
+        try (Scanner in1 = new Scanner(ResourceManager.open("/maps/map1_ob.txt"), "UTF-8");
+             Scanner in2 = new Scanner(ResourceManager.open("/maps/map2_ob.txt"), "UTF-8");
+             Scanner in3 = new Scanner(ResourceManager.open("/maps/map3_ob.txt"), "UTF-8");
+             Scanner in4 = new Scanner(ResourceManager.open("/maps/map4_ob.txt"), "UTF-8");
+             Scanner in5 = new Scanner(ResourceManager.open("/maps/map5_ob.txt"), "UTF-8")) {
             Color color;
             //map1
             while (in1.hasNext()) {
@@ -783,55 +784,58 @@ public class KaluxGame {
         vis = visM1;
     }
 
-    public static void main(String[] args) throws InterruptedException, IOException {
-        KaluxGame game = new KaluxGame();
-        View view = new View(game);
-        JEasyFrame f = new JEasyFrame(view, "game");
-        f.addKeyListener(game.ctrl);
-        f.setSize(Constants.FRAME_SIZE);
-        int moneyGainDelay = 0;
-        int moneyGain = 10;
-
-        // game loop
-        while (game.gameRunning) {
-            if (!game.freeze) {
-                game.updateEvent();
-                game.updateMap();
-                game.update();
-                game.updateVision();
-                game.collectDropObject();
-                game.useObject();
-
-                //check achievements
-                if (game.player.money >= 100) {
-                    game.ach[0] = true;
-                }
-                if (game.event == 3) {
-                    game.ach[1] = true;
-                }
-
-                if (game.ach[0] && game.ach[1]) {
-                    //add bonus character
-                    Character c = new Character(game, game.player, 16, 50, 10, 1, 3);
-                    game.worldObjectsM3L3.add(c);
-                    game.characters[10] = c;
-                    for (int a = 16; a < 16 + 2; a++)
-                        for (int b = 50; b < 50 + 2; b++)
-                            game.map3L3[a][b] = c;
-                }
-
-                //add money
-                if (moneyGainDelay < 300)
-                    moneyGainDelay++;
-                else {
-                    game.player.money += moneyGain;
-                    moneyGainDelay = 0;
-                }
+    public static void main(String[] args) throws IOException {
+        final KaluxGame game = new KaluxGame();
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                View view = new View(game);
+                view.setFocusable(true);
+                view.addKeyListener(game.ctrl);
+                JEasyFrame frame = new JEasyFrame(view, "game");
+                frame.setSize(Constants.FRAME_SIZE);
+                SwingUtilities.invokeLater(() -> view.requestFocusInWindow());
+                new Timer(Constants.DELAY, e -> game.tick(view)).start();
             }
-            view.repaint();
-            game.talk();
-            Thread.sleep(Constants.DELAY);
+        });
+    }
+
+    private int moneyGainDelay;
+
+    private void tick(View view) {
+        if (!freeze) {
+            updateEvent();
+            updateMap();
+            update();
+            updateVision();
+            collectDropObject();
+            useObject();
+
+            if (player.money >= 100) {
+                ach[0] = true;
+            }
+            if (event == 3) {
+                ach[1] = true;
+            }
+
+            if (GameRules.shouldSpawnAchievementCharacter(ach[0], ach[1], characters[10] != null)) {
+                Character c = new Character(this, player, 16, 50, 10, 1, 3);
+                worldObjectsM3L3.add(c);
+                characters[10] = c;
+                for (int a = 16; a < 18; a++)
+                    for (int b = 50; b < 52; b++)
+                        map3L3[a][b] = c;
+            }
+
+            if (moneyGainDelay < 300) {
+                moneyGainDelay++;
+            } else {
+                player.money += 10;
+                moneyGainDelay = 0;
+            }
         }
+        view.repaint();
+        talk();
     }
 
     //check for event change
@@ -1070,9 +1074,13 @@ public class KaluxGame {
         }
         //disable huntedMode
         if (huntedMode) {
+            int minRow = GameRules.scanStart(player.y, 30);
+            int maxRow = GameRules.scanEnd(player.y, 30, mapL3.length);
+            int minColumn = GameRules.scanStart(player.x, 30);
+            int maxColumn = GameRules.scanEnd(player.x, 30, mapL3[0].length);
             boolean ok = true;
-            for (int i = player.y - 30; i <= player.y + 30; i++) {
-                for (int j = player.x - 30; j <= player.y + 30; j++) {
+            for (int i = minRow; i <= maxRow; i++) {
+                for (int j = minColumn; j <= maxColumn; j++) {
                     if (mapL3[i][j] == characters[4] || mapL3[i][j] ==characters[5] || mapL3[i][j] == characters[6]) {
                         ok = false;
                         break;
@@ -1086,8 +1094,8 @@ public class KaluxGame {
 
             //check if player caught
             boolean ok1 = false, ok2 = false, ok3 = false;
-            for (int i = player.y - 30; i <= player.y + 30; i++) {
-                for (int j = player.x - 30; j <= player.y + 30; j++) {
+            for (int i = minRow; i <= maxRow; i++) {
+                for (int j = minColumn; j <= maxColumn; j++) {
                     if (mapL3[i][j] == characters [4]) ok1 = true;
                     if (mapL3[i][j] == characters[5]) ok2 = true;
                     if (mapL3[i][j] == characters[6]) ok3 = true;
