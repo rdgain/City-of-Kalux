@@ -1,6 +1,6 @@
 # City of Kalux - Project Milestones
 
-This plan covers gameplay documentation, a code-quality review and repair plan, Java 8+ compatibility, the Swing interface requirement, and an executable JAR. Milestone 1 is complete; its gameplay guide is in [GAMEPLAY.md](./GAMEPLAY.md). The remaining milestones are planned, not yet performed.
+This plan covers gameplay documentation, a code-quality review and repair plan, Java 8+ compatibility, the Swing interface requirement, and an executable JAR. Milestones 1 and 2 are complete; the gameplay guide is in [GAMEPLAY.md](./GAMEPLAY.md). Milestones 3-5 have been implemented, with runtime and interactive validation limits recorded below.
 
 ## Milestone 1 - Document gameplay
 
@@ -68,7 +68,7 @@ Headless gameplay checks are in [GameRulesTests.java](./test/game/GameRulesTests
 
 ## Milestone 3 - Support Java 8 and newer
 
-**Status:** Planned
+**Status:** Partially complete - Java 8 API/bytecode compatibility is verified on JDK 17; a Java 8 runtime check is pending.
 
 **Goal:** Build and run the game with Java 8, while preserving compatibility with newer supported JDKs.
 
@@ -76,26 +76,26 @@ Headless gameplay checks are in [GameRulesTests.java](./test/game/GameRulesTests
 
 **Tasks:**
 
-- Select and document a build method appropriate to this source tree.
-- Compile with Java 8 source/API compatibility and verify the resulting class-file target.
-- Run the game on Java 8 and at least one newer JDK.
-- Resolve only compatibility/build failures and relevant defects identified during validation.
-- Document prerequisites and build/run commands.
+- Added `build.cmd` for this source tree and documented its usage in [README.md](./README.md).
+- Compiled with Java 8 API compatibility and verified the packaged game class uses class-file version 52.
+- Built on JDK 17.0.10; the JAR has not been run on Java 8 because that runtime is not installed here.
+- No compatibility failure was found by the Java 8-targeted build or the headless gameplay checks.
 
 **Review:**
 
-- Check the configured source and target compatibility, dependency versions, and any APIs used.
-- Review the Java 8 build output and launch results on both the minimum and newer JDK.
+- `build.cmd` uses `javac --release 8` on newer JDKs and `-source 1.8 -target 1.8` on JDK 8.
+- The JDK 17 build completed and `javap` reported major version 52 for `game.KaluxGame`.
+- A Java 8 runtime launch and full newer-JDK gameplay session remain unverified.
 
-**Acceptance criteria:**
+**Acceptance criteria and remaining validation:**
 
-- A clean checkout compiles successfully for Java 8 using documented commands.
-- The application launches and the core gameplay paths work on Java 8 and a newer JDK.
-- No Java 9+ runtime/API dependency is required to run the Java 8 build.
+- Java 8 API/bytecode build: verified on JDK 17; a clean build using an actual JDK 8 remains unverified.
+- Core gameplay on Java 8 and a newer JDK: headless gameplay rules pass on JDK 17; runtime sessions remain unverified.
+- No Java 9+ API dependency is indicated by the `--release 8` build, but an actual Java 8 runtime check is still required.
 
 ## Milestone 4 - Confirm and preserve the Swing interface
 
-**Status:** Planned
+**Status:** Implementation confirmed; interactive GUI validation is pending.
 
 **Goal:** Ensure the game's desktop interface remains implemented with Java Swing, as requested.
 
@@ -103,25 +103,25 @@ Headless gameplay checks are in [GameRulesTests.java](./test/game/GameRulesTests
 
 **Tasks:**
 
-- Verify all interactive screens, overlays, rendering, and keyboard input are Swing-based.
-- Identify any non-Swing UI dependency or entry point and remove/replace it if present.
-- Check window creation, focus, repainting, and input behavior on supported JDKs.
-- Document the interface technology and any remaining UI limitations.
+- Confirmed the window and renderer use Swing (`JFrame`, `JComponent`), with a Swing `Timer` for updates.
+- Kept the keyboard listener on the focusable game view and requested focus after showing the window.
+- Documented Swing as the interface technology in [README.md](./README.md).
+- A live check of controls, overlays, and focus has not been performed.
 
 **Review:**
 
-- Inspect the UI dependency/build configuration and launch the game outside the IDE.
-- Confirm controls and interface overlays remain usable after the compatibility/build work.
+- Source inspection confirms there is no JavaFX dependency or alternate UI entry point.
+- `javac --release 8` compiled the Swing code successfully.
+- Window usability and keyboard behavior still require an interactive playthrough.
 
-**Acceptance criteria:**
+**Acceptance criteria and remaining validation:**
 
-- The application interface is delivered through Java Swing; JavaFX is not required.
-- The game window, renderer, controls, notebook, map, inventory, and achievements remain usable.
-- The Swing requirement is explicit in the project documentation.
+- Swing implementation and documentation: verified.
+- Usability of the window, renderer, controls, notebook, map, inventory, and achievements: not yet interactively verified.
 
 ## Milestone 5 - Produce an executable JAR
 
-**Status:** Planned
+**Status:** JAR built and packaged; launch from an external working directory is pending.
 
 **Goal:** Deliver a runnable JAR that does not require the IDE or a manually assembled classpath.
 
@@ -129,20 +129,19 @@ Headless gameplay checks are in [GameRulesTests.java](./test/game/GameRulesTests
 
 **Tasks:**
 
-- Configure a reproducible clean build and JAR packaging step.
-- Include the manifest main class and all required runtime resources.
-- Run the JAR from outside the repository root and verify it does not depend on IDE configuration.
-- Check the JAR with the Java 8 runtime and a newer JDK.
-- Document the artifact location and launch command.
+- Added the reproducible `build.cmd` packaging step; it creates `dist\City-of-Kalux.jar`.
+- Configured `game.KaluxGame` as the manifest entry point and packaged classes plus images, maps, notes, and sounds.
+- Inspected the JAR: it contains 194 entries, including the main class and required runtime assets; the game class is Java 8 bytecode.
+- Documented the build and launch command in [README.md](./README.md).
+- Launch from an external working directory and runtime checks on Java 8 remain pending.
 
 **Review:**
 
-- Inspect the JAR contents and manifest.
-- Launch the packaged artifact in a clean working directory and verify images, maps, notes, sound, and gameplay load correctly.
-- Confirm the artifact meets the Java 8+ target established in Milestone 3.
+- JAR contents and required assets were inspected; `jar cfe` sets the executable main class.
+- The JAR was built successfully on JDK 17, and the headless gameplay checks pass.
+- An external-directory application launch and actual Java 8 runtime check remain unverified.
 
-**Acceptance criteria:**
+**Acceptance criteria and remaining validation:**
 
-- A clean build produces a documented, executable JAR with `game.KaluxGame` as its entry point.
-- `java -jar <artifact>.jar` starts the game outside the IDE and independently of the repository's working directory.
-- Required assets and data are present and readable; the JAR works on Java 8 and a newer JDK.
+- Build output, Java 8 bytecode target, packaged assets, and documented launch command: verified.
+- `java -jar <artifact>.jar` launch from outside the repository and execution on Java 8: pending runtime validation.
